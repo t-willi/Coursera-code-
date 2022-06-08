@@ -1,3 +1,4 @@
+
 # Import required libraries
 import pandas as pd
 import dash
@@ -49,11 +50,17 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
                                 html.P("Payload range (Kg):"),
                                 # TASK 3: Add a slider to select payload range
                                 dcc.RangeSlider(id='payload-slider',min=0,max=10000,step=1000,
-                                marks={0:"0",
-                                100:"100"},
-                                value=[0,10000]),
+                                marks={
+                                0:"0",
+                                2500:"2500",
+                                5000:"5000",
+                                7500:"7500"                               
+                                },
+                                value=[0,10000]
+                                ),
 
-                                # TASK 4: Add a scatter chart to show the correlation between payload and launch success
+                                # TASK 
+                                #4: Add a scatter chart to show the correlation between payload and launch success
                                 html.Div(dcc.Graph(id='success-payload-scatter-chart')),
                                 ])
 
@@ -67,7 +74,7 @@ def get_pie_chart(site):
         fig = px.pie(spacex_df, values='class', names='Launch Site',title="total succes lauch by site")
     else:
         site_df=spacex_df[spacex_df["Launch Site"]== site]
-        fig = px.pie(site_df, names='class')
+        fig = px.pie(site_df, names='class',title="Succes and failure rate in %")
     return fig
 
 # TASK 4:
@@ -77,8 +84,19 @@ def get_pie_chart(site):
               Input(component_id="payload-slider", component_property="value")])
 
 def get_scatter(site,payload):
+    print(payload)
+    spacex_df.sort_values(by="Payload Mass (kg)", ascending=False,inplace=True)
+    lower=payload[0]
+    higher=payload[1]
     if site == "allofthem":
-        scatter = px.scatter(spacex_df,x="Payload Mass (kg)",y="class",color="Booster Version")
+        payload_df= spacex_df[(spacex_df["Payload Mass (kg)"] < higher)  & (spacex_df["Payload Mass (kg)"] > lower)]
+        scatter = px.scatter(payload_df,x="Payload Mass (kg)",y="class",color="Booster Version",hover_data=['Launch Site'])
+    else:
+        site_df=spacex_df[spacex_df["Launch Site"]== site]
+        payload_df= site_df[(site_df["Payload Mass (kg)"] < higher)  & (site_df["Payload Mass (kg)"] > lower)]
+        scatter = px.scatter(payload_df,x="Payload Mass (kg)",y="class",color="Booster Version",hover_data=['Launch Site'])
+
+
     return scatter
 
 
